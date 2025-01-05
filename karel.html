@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Karel Robot</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #4c8cff, #a29bfe);
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        #game-board {
+            display: grid;
+            grid-template-columns: repeat(10, 40px);
+            grid-gap: 5px;
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 10px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        #game-board div {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: rgba(255, 255, 255, 0.3);
+            border-radius: 5px;
+            transition: background-color 0.2s ease-in-out;
+        }
+
+        #game-board div:hover {
+            background-color: rgba(255, 255, 255, 0.5);
+        }
+
+        textarea {
+            width: 90%;
+            max-width: 500px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border: none;
+            padding: 10px;
+            font-size: 1em;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        button {
+            background-color: #6c5ce7;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 15px;
+            font-size: 1em;
+            margin: 5px;
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out, transform 0.2s ease-in-out;
+        }
+
+        button:hover {
+            background-color: #a29bfe;
+            transform: scale(1.05);
+        }
+
+        button:active {
+            transform: scale(1);
+        }
+
+        #controls {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+    </style>
+</head>
+<body>
+    <h1>Karel Robot</h1>
+    <div id="game-board"></div>
+    <div id="controls">
+        <textarea id="command-input" placeholder="Write commands here..."></textarea>
+        <button onclick="executeCommands()">Execute</button>
+        <button onclick="resetGame()">Reset</button>
+    </div>
+    <script>
+        const boardSize = 10; // 10x10 grid
+        const board = Array.from({ length: boardSize }, () => Array(boardSize).fill(null));
+        let karel = { x: 0, y: 0 }; // Karel's initial position
+
+        function renderBoard() {
+            const gameBoard = document.getElementById("game-board");
+            gameBoard.innerHTML = "";
+            board.forEach((row, y) => {
+                row.forEach((cell, x) => {
+                    const cellDiv = document.createElement("div");
+                    cellDiv.className = "cell";
+
+                    if (cell) {
+                        const colorDiv = document.createElement("div");
+                        colorDiv.className = "color";
+                        colorDiv.style.backgroundColor = cell;
+                        colorDiv.style.width = "100%";
+                        colorDiv.style.height = "100%";
+                        cellDiv.appendChild(colorDiv);
+                    }
+
+                    if (karel.x === x && karel.y === y) {
+                        const karelDiv = document.createElement("div");
+                        karelDiv.textContent = "K";
+                        karelDiv.style.color = "#2d3436";
+                        karelDiv.style.fontWeight = "bold";
+                        cellDiv.appendChild(karelDiv);
+                    }
+
+                    gameBoard.appendChild(cellDiv);
+                });
+            });
+        }
+
+        function executeCommands() {
+            const input = document.getElementById("command-input").value;
+            const commands = input.trim().split("\n");
+            commands.forEach(command => executeCommand(command));
+            renderBoard();
+        }
+
+        function executeCommand(command) {
+            const parts = command.trim().split(/\s+/);
+            const cmd = parts[0].toUpperCase();
+            const param = parts[1];
+
+            switch (cmd) {
+                case "UP":
+                    move(0, -parseInt(param) || -1);
+                    break;
+                case "DOWN":
+                    move(0, parseInt(param) || 1);
+                    break;
+                case "LEFT":
+                    move(-parseInt(param) || -1, 0);
+                    break;
+                case "RIGHT":
+                    move(parseInt(param) || 1, 0);
+                    break;
+                case "PLACE":
+                    place(param);
+                    break;
+                case "RESET":
+                    resetGame();
+                    break;
+                default:
+                    console.warn("Unknown command:", cmd);
+            }
+        }
+
+        function move(dx, dy) {
+            karel.x = Math.min(Math.max(0, karel.x + dx), boardSize - 1);
+            karel.y = Math.min(Math.max(0, karel.y + dy), boardSize - 1);
+        }
+
+        function place(color) {
+            if (!/^#[0-9A-Fa-f]{6}$/.test(color) && !CSS.supports("color", color)) {
+                console.warn("Invalid color:", color);
+                return;
+            }
+            board[karel.y][karel.x] = color;
+        }
+
+        function resetGame() {
+            board.forEach(row => row.fill(null));
+            karel = { x: 0, y: 0 };
+            renderBoard();
+        }
+
+        // Initialize
+        renderBoard();
+        /*
+        SMILE CODE        
+down 3
+right 3
+place red
+right 3
+place red
+left 4
+down 2
+place green
+down 1
+right 1
+place green
+right 1 
+place green
+right 1 
+place green
+right 1 
+place green
+up
+right 1 
+place green
+right 10
+down 10
+        */
+    </script>
+</body>
+</html>
